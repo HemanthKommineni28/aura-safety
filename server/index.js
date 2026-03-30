@@ -32,6 +32,9 @@ app.use((req, res, next) => {
     next();
 });
 
+// Deployment Health Check
+app.get('/', (req, res) => res.send('Aura Safety System: Online 🛡️'));
+
 // --- AUTH ROUTES ---
 app.post('/register', (req, res) => {
   const { username, password, role, phone, email } = req.body;
