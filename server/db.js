@@ -23,6 +23,7 @@ db.exec(`
     user_id INTEGER NOT NULL,
     name TEXT NOT NULL,
     phone TEXT NOT NULL,
+    email TEXT,
     relation TEXT,
     FOREIGN KEY (user_id) REFERENCES users(id)
   )
