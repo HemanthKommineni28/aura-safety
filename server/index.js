@@ -42,9 +42,11 @@ app.post('/register', (req, res) => {
   try {
     db.prepare('INSERT INTO users (username, password, role, phone, email, otp, verified) VALUES (?, ?, ?, ?, ?, ?, 0)').run(username, password, role, phone, email, otp);
     if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+        const baseUrl = process.env.PORT ? 'https://aura-safety.onrender.com' : `http://localhost:${PORT}`;
+        
         if (role === 'admin') {
-            const approvalLink = `http://localhost:3001/approve-admin/${username}/${otp}`;
-            const rejectionLink = `http://localhost:3001/reject-admin/${username}/${otp}`;
+            const approvalLink = `${baseUrl}/approve-admin/${username}/${otp}`;
+            const rejectionLink = `${baseUrl}/reject-admin/${username}/${otp}`;
             
             transporter.sendMail({
                 from: process.env.EMAIL_USER,
