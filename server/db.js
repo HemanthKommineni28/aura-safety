@@ -74,6 +74,18 @@ try {
   db.exec("UPDATE users SET verified = 1 WHERE verified IS NULL OR verified = 0;");
 } catch (e) {}
 
+// Seed Default Administrator
+try {
+  const admin = db.prepare('SELECT id FROM users WHERE username = ?').get('Aura Safety');
+  if (!admin) {
+    db.prepare('INSERT INTO users (username, password, role, phone, email, verified) VALUES (?, ?, ?, ?, ?, 1)')
+      .run('Aura Safety', 'AuraSafety@2026', 'admin', 'N/A', 'panic.alert.system.2026@gmail.com');
+    console.log("🚀 Default Administrator 'Aura Safety' Seeded!");
+  }
+} catch (e) {
+  console.error("Critical: Could not seed admin", e);
+}
+
 console.log("Database schema updated with profiles, history, and emergency types.");
 
 module.exports = db;
