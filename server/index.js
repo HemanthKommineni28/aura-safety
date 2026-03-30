@@ -189,20 +189,32 @@ app.post('/sos', (req, res) => {
     alertId = info.lastInsertRowid;
   }
   
-  // ALWAYS notify contacts on every SOS press to ensure delivery during testing/emergency
-  const alertTime = new Date().toLocaleTimeString();
-  const contacts = db.prepare('SELECT email FROM emergency_contacts WHERE user_id = ?').all(user_id);
+  // -- SMART NOTIFICATION THROTTLE (5 Minute Grace Period) --
+  const alert = db.prepare("SELECT last_notified, username FROM alerts WHERE id = ?").get(alertId);
+  const now = Date.now();
+  const fiveMinutes = 5 * 60 * 1000;
   
-  contacts.forEach(contact => {
-      if (contact.email && process.env.EMAIL_USER && process.env.EMAIL_PASS) {
-          transporter.sendMail({
-              from: process.env.EMAIL_USER,
-              to: contact.email,
-              subject: `🚨 URGENT: SOS Alert from ${user.username} - Aura Safety`,
-              html: templates.sos(user.username, lat, lng, type, alertTime)
-          }).catch(e => console.error("[EMAIL ERROR]", e));
-      }
-  });
+  // Only send if never notified or if 5 minutes have passed
+  if (!alert.last_notified || (now - new Date(alert.last_notified).getTime()) > fiveMinutes) {
+      const alertTime = new Date().toLocaleTimeString();
+      const contacts = db.prepare('SELECT email FROM emergency_contacts WHERE user_id = ?').all(user_id);
+      
+      contacts.forEach(contact => {
+          if (contact.email && process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+              transporter.sendMail({
+                  from: process.env.EMAIL_USER,
+                  to: contact.email,
+                  subject: alert.last_notified 
+                      ? `📍 UPDATE: ${user.username}'s Location - Aura Safety`
+                      : `🚨 URGENT: SOS Alert from ${user.username} - Aura Safety`,
+                  html: templates.sos(user.username, lat, lng, type, alertTime)
+              }).catch(e => console.error("[EMAIL ERROR]", e));
+          }
+      });
+
+      // Update the throttle timestamp
+      db.prepare("UPDATE alerts SET last_notified = CURRENT_TIMESTAMP WHERE id = ?").run(alertId);
+  }
 
   const updatedAlert = db.prepare("SELECT timestamp FROM alerts WHERE id = ?").get(alertId);
   res.json({ id: alertId, status: 'active', timestamp: updatedAlert.timestamp });

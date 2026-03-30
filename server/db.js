@@ -72,10 +72,14 @@ try {
 
 // Mark all pre-existing users (before OTP system) as already verified
 try {
-  db.exec("UPDATE users SET verified = 1 WHERE verified IS NULL OR verified = 0;");
+  db.exec("ALTER TABLE users ADD COLUMN profile_photo TEXT;");
 } catch (e) {}
 
-// Seed Default Administrator
+try {
+  db.exec("ALTER TABLE alerts ADD COLUMN last_notified DATETIME;");
+} catch (e) {}
+
+// Mark all pre-existing users (before OTP system) as already verified
 try {
   const admin = db.prepare('SELECT id FROM users WHERE username = ?').get('Aura Safety');
   if (!admin) {
