@@ -1,4 +1,6 @@
-export const API_BASE = 'http://localhost:3001';
+export const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+  ? 'http://localhost:3001' 
+  : 'https://aura-safety.onrender.com';
 
 export async function apiCall(endpoint, method = 'POST', body = null) {
   try {
