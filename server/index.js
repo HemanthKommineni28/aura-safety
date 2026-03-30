@@ -7,7 +7,7 @@ const templates = require('./emailTemplates.js');
 const db = require('./db.js');
 
 const app = express();
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 
 // Nodemailer Setup
 const transporter = nodemailer.createTransport({
