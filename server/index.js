@@ -196,7 +196,8 @@ app.post('/sos', (req, res) => {
   
   // Only send if never notified or if 5 minutes have passed
   if (!alert.last_notified || (now - new Date(alert.last_notified).getTime()) > fiveMinutes) {
-      const alertTime = new Date().toLocaleTimeString();
+      // Force IST (Indian Standard Time) for reliable emergency reporting
+      const alertTime = new Date().toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', second: '2-digit' });
       const contacts = db.prepare('SELECT email FROM emergency_contacts WHERE user_id = ?').all(user_id);
       
       contacts.forEach(contact => {
